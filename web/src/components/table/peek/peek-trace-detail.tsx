@@ -3,6 +3,7 @@ import { useRouter } from "next/router";
 import { useRef } from "react";
 import { TraceDetailActions } from "@/src/features/traces/components/TraceDetailActions";
 import { TraceDetailBody } from "@/src/features/traces/components/TraceDetailBody";
+import { StaleContent } from "@/src/features/traces/components/StaleContent";
 import {
   TablePeekView,
   shouldClosePeekAfterDelete,
@@ -64,12 +65,19 @@ export const TablePeekViewTraceDetail = (
       {...tablePeekViewProps}
       title={traceId}
       hideExpandToggle
+      preserveContentAcrossItems
       actions={
-        actionProps ? <TraceDetailActions {...actionProps} /> : undefined
+        actionProps ? (
+          <StaleContent stale={trace.isPlaceholderData}>
+            <TraceDetailActions {...actionProps} />
+          </StaleContent>
+        ) : undefined
       }
       actionsMenu={
         actionProps ? (
-          <TraceDetailActions {...actionProps} layout="menu" />
+          <StaleContent stale={trace.isPlaceholderData}>
+            <TraceDetailActions {...actionProps} layout="menu" />
+          </StaleContent>
         ) : undefined
       }
     >
@@ -78,6 +86,7 @@ export const TablePeekViewTraceDetail = (
         context="peek"
         layout={layout}
         truncatedAtObservations={trace.truncatedAtObservations}
+        isPlaceholderData={trace.isPlaceholderData}
       />
     </TablePeekView>
   );

@@ -4,6 +4,7 @@ import {
 } from "@/src/components/table/peek";
 import { usePeekData } from "@/src/components/table/peek/hooks/usePeekData";
 import { TraceDetailActions, TraceDetailBody } from "@/src/features/traces";
+import { StaleContent } from "@/src/features/traces/components/StaleContent";
 import { resolvePeekTraceParams } from "@/src/components/table/peek/resolvePeekTraceParams";
 import { buildTracePath } from "@langfuse/shared";
 import { useRouter } from "next/router";
@@ -68,12 +69,19 @@ export const TablePeekViewObservationDetail = (
       {...props}
       title={traceId}
       hideExpandToggle
+      preserveContentAcrossItems
       actions={
-        actionProps ? <TraceDetailActions {...actionProps} /> : undefined
+        actionProps ? (
+          <StaleContent stale={trace.isPlaceholderData}>
+            <TraceDetailActions {...actionProps} />
+          </StaleContent>
+        ) : undefined
       }
       actionsMenu={
         actionProps ? (
-          <TraceDetailActions {...actionProps} layout="menu" />
+          <StaleContent stale={trace.isPlaceholderData}>
+            <TraceDetailActions {...actionProps} layout="menu" />
+          </StaleContent>
         ) : undefined
       }
     >
@@ -82,6 +90,7 @@ export const TablePeekViewObservationDetail = (
         context="peek"
         keySuffix={peekObservationId}
         truncatedAtObservations={trace.truncatedAtObservations}
+        isPlaceholderData={trace.isPlaceholderData}
       />
     </TablePeekView>
   );
