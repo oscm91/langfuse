@@ -8,7 +8,9 @@
  * last.
  *
  * Removal: delete this file, `BuildIntentFieldset.tsx`, the `buildIntent*`
- * fields in the onboarding router, service and form.
+ * fields in the onboarding router, service and form, and the build-intent
+ * props and `onboardingBuildIntents` person property on the
+ * `onboarding:signup_survey_submitted` event.
  */
 
 const USE_CASE_OPTIONS = [
