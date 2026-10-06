@@ -5,12 +5,14 @@ import { showErrorToast } from "@/src/features/notifications";
 import { useWatchedPromiseCallback } from "@/src/hooks/useWatchedPromiseCallback";
 import { api } from "@/src/utils/api";
 import { getDemoCallbackRedirectPath } from "../lib/demoCallbackRedirect";
+import { orderBuildIntentOptions } from "../lib/buildIntent";
 import type { SurveyFormData } from "../lib/surveyTypes";
 import { OnboardingSurvey } from "./OnboardingSurvey";
 
 export function ConnectedOnboardingSurvey() {
   const router = useRouter();
-  const { update: updateSession } = useSession();
+  const { data: session, update: updateSession } = useSession();
+  const userId = session?.user?.id;
   const utils = api.useUtils();
   const onboardingStatus = api.onboarding.status.useQuery();
   const completeOnboardingMutation = api.onboarding.complete.useMutation();
@@ -30,16 +32,16 @@ export function ConnectedOnboardingSurvey() {
         const canConfigureAiFeatures =
           onboardingStatus.data?.completed === false &&
           onboardingStatus.data.canConfigureAiFeatures;
-        const onboardingResult = await completeOnboardingMutation.mutateAsync(
-          referralSource || canConfigureAiFeatures
-            ? {
-                ...(referralSource ? { referralSource } : {}),
-                ...(canConfigureAiFeatures
-                  ? { aiFeaturesEnabled: data.aiFeaturesEnabled }
-                  : {}),
-              }
-            : undefined,
-        );
+        const buildIntents = data.buildIntents;
+        const buildIntentOther = data.buildIntentOther?.trim();
+        const onboardingResult = await completeOnboardingMutation.mutateAsync({
+          ...(referralSource ? { referralSource } : {}),
+          ...(canConfigureAiFeatures
+            ? { aiFeaturesEnabled: data.aiFeaturesEnabled }
+            : {}),
+          ...(buildIntents.length > 0 ? { buildIntents } : {}),
+          ...(buildIntentOther ? { buildIntentOther } : {}),
+        });
         const redirectTo = queryRedirectPath ?? onboardingResult.redirectTo;
         utils.onboarding.status.setData(undefined, {
           completed: true,
@@ -113,6 +115,8 @@ export function ConnectedOnboardingSurvey() {
     isFinishingOnboarding ||
     isRedirectingCompletedOnboarding ||
     !router.isReady ||
+    // The option order is seeded by the user id, so wait for it to avoid a reorder.
+    !userId ||
     onboardingStatus.isLoading ||
     onboardingStatus.data?.completed === true;
 
@@ -127,6 +131,7 @@ export function ConnectedOnboardingSurvey() {
   return (
     <OnboardingSurvey
       state="form"
+      buildIntentOptions={orderBuildIntentOptions(userId)}
       canConfigureAiFeatures={
         onboardingStatus.data?.completed === false
           ? onboardingStatus.data.canConfigureAiFeatures
